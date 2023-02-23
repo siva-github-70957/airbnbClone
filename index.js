@@ -12,9 +12,10 @@ const fs = require('fs');
 const Place = require('./models/place');
 const BookingModel = require('./models/booking');
 
-
 const bcryptSalt = bcrypt.genSaltSync(10);
 const jwtSecret = 'hellodoctorheartmissayye';
+
+const PORT = process.env.PORT || 4000
 
 const app = express();
 app.use(express.json());
@@ -100,7 +101,8 @@ app.post('/upload-by-link', async (req, res) => {
     const newName = 'photo' + Date.now() + '.jpg';
     await imageDownloader.image({
         url: link,
-        dest: __dirname + '/uploads/' + newName,
+        // dest: __dirname + '/uploads/' + newName,
+        dest: 'https://airbnbclonebackend-n253.onrender.com' + '/uploads/' + newName,
     });
     res.json(newName);
 })
@@ -203,4 +205,4 @@ app.get('/', (req, res) => {
     res.json('you are in home page of server');
 });
 
-app.listen(4000);
+app.listen(PORT);
