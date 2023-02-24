@@ -9,13 +9,12 @@ const cookieParser = require('cookie-parser');
 const imageDownloader = require('image-downloader');
 const multer = require('multer');
 const fs = require('fs');
-const Place = require('./models/place');
+const PlaceModel = require('./models/place');
 const BookingModel = require('./models/booking');
+
 
 const bcryptSalt = bcrypt.genSaltSync(10);
 const jwtSecret = 'hellodoctorheartmissayye';
-
-const PORT = process.env.PORT || 4000
 
 const app = express();
 app.use(express.json());
@@ -101,8 +100,7 @@ app.post('/upload-by-link', async (req, res) => {
     const newName = 'photo' + Date.now() + '.jpg';
     await imageDownloader.image({
         url: link,
-        // dest: __dirname + '/uploads/' + newName,
-        dest: 'https://airbnbclonebackend-n253.onrender.com' + '/uploads/' + newName,
+        dest: __dirname + '/uploads/' + newName,
     });
     res.json(newName);
 })
@@ -128,14 +126,16 @@ app.post('/upload', photosMiddleware.array('photos', 100), async (req, res) => {
 
 app.post('/places', (req, res) => {
     const { token } = req.cookies;
+    console.log(req.body);
     const { title, address, addedPhotos, description
         , perks, extraInfo, checkIn, checkOut, maxGuest, price } = req.body;
+    console.log(title, address, addedPhotos, description);
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         if (err) { throw err }
-        const placeDoc = await Place.create({
+        const placeDoc = await PlaceModel.create({
             owner: userData.id,
             title, address, photos: addedPhotos, description, perks, extraInfo, checkIn, checkOut, maxGuest, price
-        })
+        });
         res.json(placeDoc);
     })
 });
@@ -144,13 +144,13 @@ app.get('/user-places', (req, res) => {
     const { token } = req.cookies;
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
         const { id } = userData;
-        res.json(await Place.find({ owner: id }));
+        res.json(await PlaceModel.find({ owner: id }));
     });
 })
 
 app.get('/places/:id', async (req, res) => {
     const { id } = req.params;
-    res.json(await Place.findById(id));
+    res.json(await PlaceModel.findById(id));
 })
 
 app.put('/places', async (req, res) => {
@@ -158,7 +158,7 @@ app.put('/places', async (req, res) => {
     const { id, title, address, addedPhotos, description, price
         , perks, extraInfo, checkIn, checkOut, maxGuest } = req.body;
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
-        const placeDoc = await Place.findById(id);
+        const placeDoc = await PlaceModel.findById(id);
         if (userData.id === placeDoc.owner.toString()) {
             placeDoc.set({
                 title, address, photos: addedPhotos, description, perks, extraInfo, checkIn, checkOut, maxGuest, price
@@ -171,7 +171,7 @@ app.put('/places', async (req, res) => {
 
 
 app.get('/places', async (req, res) => {
-    res.json(await Place.find());
+    res.json(await PlaceModel.find());
 })
 
 app.post('/bookings', async (req, res) => {
@@ -205,4 +205,4 @@ app.get('/', (req, res) => {
     res.json('you are in home page of server');
 });
 
-app.listen(PORT);
+app.listen(4000);
